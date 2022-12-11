@@ -1,0 +1,293 @@
+{
+  "ID": "test-12684",
+  "Network": {
+    "Name": "",
+    "VlanID": 3750
+  },
+  "Infra": {
+    "VCenters": [
+      {
+        "IP": "dev-vcenter-6.7.0.dev.pensando.io",
+        "Username": "administrator@dev.pensando.io",
+        "Password": "Pen0trl!",
+        "Version": "6.7",
+        "License": "YN69K-6YK5J-78X8T-0M3RH-0T12H",
+        "Datastore": "3750"
+      },
+      {
+        "IP": "dev-vcenter-7.0.0.dev.pensando.io",
+        "Username": "administrator@dev.pensando.io",
+        "Password": "Pen0trl!",
+        "Version": "7.0",
+        "License": "",
+        "Datastore": "3750"
+      }
+    ],
+    "Nsxs": [
+      {
+        "IP": "dev-nsx-3.dev.pensando.io",
+        "Username": "admin",
+        "Password": "Pensand0trl!",
+        "Version": "3.0"
+      }
+    ]
+  },
+  "Instances": [
+    {
+      "ID": 415,
+      "Name": "10.8.33.54",
+      "Type": "bm",
+      "ImageID": "build-300",
+      "ImageOS": "linux",
+      "NodeMgmtIP": "10.8.113.231",
+      "NodeCimcIP": "10.8.33.54",
+      "NodeCimcUsername": "infra",
+      "NodeCimcPassword": "Pen1nfra$",
+      "Resource": {
+        "ApcIP": "10.2.33.49",
+        "ApcPassword": "dummy",
+        "ApcPort": "20",
+        "ApcUsername": "dummy",
+        "ServerType": "Cisco:C220",
+        "boot-mode": "legacy",
+        "cpu-cores": "8",
+        "cpu-count": "1",
+        "cpu-model": "Intel(R) Xeon(R) Bronze 3106 CPU @ 1.70GHz",
+        "cpu-vendor": "Intel",
+        "hostname": "tb29-host2",
+        "mac": "f8:0f:6f:83:dd:f2",
+        "memory": "64",
+        "netbox-id": "611",
+        "purpose": "dev testbeds",
+        "row": "1",
+        "sanity-group": "default",
+        "serial-number": "WZP22400L03"
+      },
+      "Nics": [
+        {
+          "Type": "naples",
+          "MgmtIP": "10.8.104.114",
+          "ConsoleIP": "10.2.32.44",
+          "ConsolePort": "2022",
+          "ConsolePassword": "N0isystem$",
+          "Ports": [
+            {
+              "Name": "oob_mnic0",
+              "IP": "10.8.104.114",
+              "MAC": "00:ae:cd:01:14:bf",
+              "SwitchIP": "10.2.33.39",
+              "SwitchPort": 43,
+              "SwitchUsername": "",
+              "SwitchPassword": "",
+              "Speed": 0
+            },
+            {
+              "Name": "inb_mnic0",
+              "IP": "10.230.50.55",
+              "MAC": "00:ae:cd:01:14:be",
+              "SwitchIP": "10.2.32.41",
+              "SwitchPort": 23,
+              "SwitchUsername": "iota",
+              "SwitchPassword": "Pen_123",
+              "Speed": 0
+            },
+            {
+              "Name": "inb_mnic1",
+              "IP": "10.230.50.54",
+              "MAC": "00:ae:cd:01:14:bd",
+              "SwitchIP": "10.2.32.41",
+              "SwitchPort": 24,
+              "SwitchUsername": "iota",
+              "SwitchPassword": "Pen_123",
+              "Speed": 0
+            }
+          ],
+          "Properties": [
+            {
+              "Name": "alom",
+              "Value": "false"
+            },
+            {
+              "Name": "connected-switch",
+              "Value": "cisco-n3k"
+            },
+            {
+              "Name": "memory",
+              "Value": "4G"
+            },
+            {
+              "Name": "mgmt-interface",
+              "Value": "oob"
+            },
+            {
+              "Name": "part-number",
+              "Value": "P18669-001"
+            },
+            {
+              "Name": "processor",
+              "Value": "capri"
+            },
+            {
+              "Name": "speed",
+              "Value": "100G"
+            }
+          ]
+        }
+      ],
+      "PDUPort": {
+        "Type": "",
+        "MgmtIP": "",
+        "ConsoleIP": "",
+        "ConsolePort": "",
+        "ConsolePassword": "",
+        "Ports": [
+          {
+            "Name": "",
+            "IP": "",
+            "MAC": "",
+            "SwitchIP": "10.2.33.49",
+            "SwitchPort": 20,
+            "SwitchUsername": "dummy",
+            "SwitchPassword": "dummy",
+            "Speed": 0
+          }
+        ],
+        "Properties": null
+      }
+    },
+    {
+      "ID": 514,
+      "Name": "10.8.33.67",
+      "Type": "bm",
+      "ImageID": "build-300",
+      "ImageOS": "linux",
+      "NodeMgmtIP": "10.8.122.16",
+      "NodeCimcIP": "10.8.33.67",
+      "NodeCimcUsername": "infra",
+      "NodeCimcPassword": "Pen1nfra$",
+      "Resource": {
+        "ApcIP": "10.2.33.49",
+        "ApcPassword": "dummy",
+        "ApcPort": "6",
+        "ApcUsername": "dummy",
+        "ServerType": "HPE:ProLiant DL360 Gen10",
+        "boot-disk": "/dev/sda",
+        "boot-mode": "legacy",
+        "cpu-cores": "10",
+        "cpu-count": "2",
+        "cpu-model": "Intel(R) Xeon(R) Silver 4210 CPU @ 2.20GHz",
+        "cpu-vendor": "Intel",
+        "memory": "128G",
+        "purpose": "dev testbeds",
+        "row": "1",
+        "sanity-group": "default",
+        "serial-number": "MXQ943071C"
+      },
+      "Nics": [
+        {
+          "Type": "naples",
+          "MgmtIP": "10.8.104.115",
+          "ConsoleIP": "10.2.32.44",
+          "ConsolePort": "2033",
+          "ConsolePassword": "N0isystem$",
+          "Ports": [
+            {
+              "Name": "oob_mnic0",
+              "IP": "10.8.104.115",
+              "MAC": "00:ae:cd:03:26:27",
+              "SwitchIP": "10.2.33.39",
+              "SwitchPort": 33,
+              "SwitchUsername": "",
+              "SwitchPassword": "",
+              "Speed": 0
+            },
+            {
+              "Name": "inb_mnic0",
+              "IP": "10.230.50.57",
+              "MAC": "00:ae:cd:03:26:26",
+              "SwitchIP": "10.2.33.38",
+              "SwitchPort": 15,
+              "SwitchUsername": "iota",
+              "SwitchPassword": "Pen_123",
+              "Speed": 0
+            },
+            {
+              "Name": "inb_mnic1",
+              "IP": "10.230.50.56",
+              "MAC": "00:ae:cd:03:26:25",
+              "SwitchIP": "10.2.33.38",
+              "SwitchPort": 16,
+              "SwitchUsername": "iota",
+              "SwitchPassword": "Pen_123",
+              "Speed": 0
+            }
+          ],
+          "Properties": [
+            {
+              "Name": "connected-switch",
+              "Value": "cisco-n3k"
+            },
+            {
+              "Name": "memory",
+              "Value": "4G"
+            },
+            {
+              "Name": "mgmt-interface",
+              "Value": "oob"
+            },
+            {
+              "Name": "part-number",
+              "Value": "68-0003-05 A0"
+            },
+            {
+              "Name": "processor",
+              "Value": "capri"
+            },
+            {
+              "Name": "speed",
+              "Value": "100G"
+            }
+          ]
+        }
+      ],
+      "PDUPort": {
+        "Type": "",
+        "MgmtIP": "",
+        "ConsoleIP": "",
+        "ConsolePort": "",
+        "ConsolePassword": "",
+        "Ports": [
+          {
+            "Name": "",
+            "IP": "",
+            "MAC": "",
+            "SwitchIP": "10.2.33.49",
+            "SwitchPort": 6,
+            "SwitchUsername": "dummy",
+            "SwitchPassword": "dummy",
+            "Speed": 0
+          }
+        ],
+        "Properties": null
+      }
+    }
+  ],
+  "Images": {
+    "build-300": {
+      "distro": "ubuntu",
+      "os": "linux",
+      "password": "vm",
+      "release": "18.04",
+      "username": "vm"
+    }
+  },
+  "Provision": {
+    "Username": "vm",
+    "Password": "vm",
+    "PrivateKeyFile": "",
+    "Vars": {
+      "BmOs": "linux",
+      "DevSetup": "true"
+    }
+  }
+}
