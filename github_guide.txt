@@ -1,0 +1,33 @@
+Follow below steps to add your work to snap-log repository in github
+
+1. Create a fork of AmritaPatole/snap-log on the github website (You need to do this only once)
+    example: https://github.com/<your github-id>/snap-log
+    Create and add your SSH key to github: https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/
+
+2. Checkout a new tree
+    It is preferable to have your tree in /local instead of /home.
+    /home is backed up and is found to be slower.
+    Create your workspace:
+
+3. mkdir -p /local/<user-name>/<ws-name>/
+
+4. cd /local/<user-name>/<ws-name>
+
+5. git clone git@github.com:AmritaPatole/snap-log
+
+6. Adding git remote (this needs to be done whenever ‘git clone <>’ is done)
+    git remote add <your-tag> <your-github-fork>
+    <your-tag> is used later for pushing commits
+    <your-girthub-fork> is the fork made on your github account
+    For e.g. :  https://github.com/kalyanbade/sw
+
+7. git remote add upstream git@github.com:AmritaPatole/snap-log
+
+8. git pull -r upstream main
+
+9. git checkout -b <your-branch-name>
+
+10. Start making your changes here and commit locally.
+
+11. git push <your-tag> <your-branch-name>
+
