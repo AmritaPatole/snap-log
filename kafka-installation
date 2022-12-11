@@ -1,0 +1,36 @@
+Install latest java and set JAVA_HOME
+
+1. sudo apt update
+2. sudo apt install default-jdk
+3. sudo apt install default-jre
+4. java -version
+5. get java path: <java_path> = update-alternatives --config java
+6. sudo nano /etc/environment
+7. JAVA_HOME="JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
+8. source /etc/environment
+
+Install latest kafka
+
+1. curl https://dlcdn.apache.org/kafka/3.3.1/kafka_2.13-3.3.1.tgz -o <dir>/kafka.tgz
+2. mkdir -p kafka; cd kafka
+3. tar -xzf <dir>/kafka.tgz
+4. cd kafka_2.13-3.3.1
+5. Kafka’s default behavior will not allow us to delete a topic, the category, group, or feed name to which messages can be published. To modify this, let’s edit the configuration file.
+   nano ~/kafka/config/server.properties --> delete.topic.enable = true
+6. # Start the ZooKeeper service
+    $ bin/zookeeper-server-start.sh config/zookeeper.properties
+7. Open another terminal session and run:
+
+# Start the Kafka broker service
+$ bin/kafka-server-start.sh config/server.properties
+
+8. create kafka topic
+$ bin/kafka-topics.sh --create --topic dss-logs --bootstrap-server localhost:9092
+
+$ bin/kafka-topics.sh --describe --topic dss-logs --bootstrap-server localhost:9092
+
+9. testing:
+
+    a. write messages here: $ bin/kafka-console-producer.sh --topic dss-logs --bootstrap-server localhost:9092
+    b. read messages from here: $ bin/kafka-console-consumer.sh --topic dss-logs --from-beginning --bootstrap-server localhost:9092
+
