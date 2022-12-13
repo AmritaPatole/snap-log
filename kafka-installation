@@ -34,3 +34,20 @@ $ bin/kafka-topics.sh --describe --topic dss-logs --bootstrap-server localhost:9
     a. write messages here: $ bin/kafka-console-producer.sh --topic dss-logs --bootstrap-server localhost:9092
     b. read messages from here: $ bin/kafka-console-consumer.sh --topic dss-logs --from-beginning --bootstrap-server localhost:9092
 
+Install Kafka C library
+
+sudo apt install librdkafka-dev
+
+more info: https://github.com/edenhill/librdkafka
+
+Example using librdkafka:
+
+1. git clone https://github.com/edenhill/librdkafka.git
+2. cd librdkafka
+3. ./configure
+4. make
+5. sudo make install
+6. ./producer localhost:9092 dss-logs
+7. ./consumer localhost:9092 c_example_group_1 dss-logs
+
+
