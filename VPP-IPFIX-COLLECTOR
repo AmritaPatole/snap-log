@@ -1,0 +1,401 @@
+diff --git a/src/vnet/CMakeLists.txt b/src/vnet/CMakeLists.txt
+index bad853e55..f2d153ec4 100644
+--- a/src/vnet/CMakeLists.txt
++++ b/src/vnet/CMakeLists.txt
+@@ -870,6 +870,7 @@ list(APPEND VNET_API_FILES
+ ##############################################################################
+ list(APPEND VNET_SOURCES
+   ipfix-export/flow_report.c
++  ipfix-export/ipfix_node.c
+   ipfix-export/flow_api.c
+ )
+
+diff --git a/src/vnet/ipfix-export/ipfix_node.c b/src/vnet/ipfix-export/ipfix_node.c
+new file mode 100644
+index 000000000..25849ff3e
+--- /dev/null
++++ b/src/vnet/ipfix-export/ipfix_node.c
+@@ -0,0 +1,254 @@
++/*
++ * Copyright (c) 2017 Cisco and/or its affiliates.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at:
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include <vlib/vlib.h>
++#include <vnet/vnet.h>
++#include <vnet/pg/pg.h>
++#include <vppinfra/error.h>
++#include <vnet/udp/udp.h>
++#include "ipfix_packet.h"
++
++#define IPFIX_TCP_TEMPLATE_ID 257
++#define IPFIX_UDP_TEMPLATE_ID 258
++#define IPFIX_ICMP_TEMPLATE_ID 259
++#define IPFIX_TEMPLATE_ID 2
++#define IPFIX_ICMP6_TEMPLATE_ID 266
++
++
++#define foreach_ipfix_error \
++_(TCP_SET, "tcp IP-Fix set processed") \
++_(UDP_SET, "udp IP-Fix set processed") \
++_(ICMP_SET, "ICMP IP-Fix set processed") \
++_(TOTAL_SET, "Total IP-Fix set processed") \
++_(INVALID_SET, "Invalid set id")
++
++typedef enum
++{
++#define _(sym,str) IPFIX_##sym,
++  foreach_ipfix_error
++#undef _
++    IPFIX_N_ERROR,
++} ipfix_error_t;
++
++static char *ipfix_error_strings[] = {
++#define _(sym,string) string,
++  foreach_ipfix_error
++#undef _
++};
++
++typedef enum
++{
++  IPFIX_NEXT_DROP,
++  IPFIX_N_NEXT,
++} tcp_ipfix_collector_next_t;
++
++typedef struct {
++    u32 num_of_sets;
++    u32 num_of_tcp;
++    u32 num_of_udp;
++    u32 num_of_icmp;
++    u32 num_of_icmp6;
++    u32 num_of_template;
++    u32 last_set_id;
++    u32 sip;
++    u32 dip;
++} ipfix_trace_t;
++
++static u8 *
++format_ipfix_trace (u8 * s, va_list * args)
++{
++  CLIB_UNUSED (vlib_main_t * vm) = va_arg (*args, vlib_main_t *);
++  CLIB_UNUSED (vlib_node_t * node) = va_arg (*args, vlib_node_t *);
++  ipfix_trace_t *t = va_arg (*args, ipfix_trace_t *);
++
++  s = format (s,
++	      "IPFIX: set_id %u, num of sets %u TCP sets %u UDP sets %u ICMP sets %u num of templates %u ICMP6 set %u sip %u dip %u", t->last_set_id,
++	      t->num_of_sets, t->num_of_tcp, t->num_of_udp, t->num_of_icmp, t->num_of_template, t->num_of_icmp6, t->sip, t->dip);
++  return s;
++}
++
++uword
++ipfix_node_fn (vlib_main_t * vm,
++			 vlib_node_runtime_t * node,
++			 vlib_frame_t * from_frame)
++{
++  u32 n_left_from, next_index, *from, *to_next;
++  u32 total_set = 0, icmp_set = 0, tcp_set = 0, udp_set = 0, invalid_set = 0;
++  u32 last_set = 0, template_set = 0, icmp6_set = 0;
++
++  from = vlib_frame_vector_args (from_frame);
++  n_left_from = from_frame->n_vectors;
++
++  next_index = node->cached_next_index;
++
++  while (n_left_from > 0)
++    {
++      u32 n_left_to_next;
++
++      vlib_get_next_frame (vm, node, next_index, to_next, n_left_to_next);
++
++      while (n_left_from > 0 && n_left_to_next > 0)
++	{
++	  u32 bi0;
++	  vlib_buffer_t *b0;
++	  u32 next0,sip = 0, dip = 0;
++	  ipfix_message_header_t *ipfix0;
++	  ipfix_set_header_t *set0;
++	  u16 set_id0, set_len0;
++
++	  bi0 = from[0];
++	  to_next[0] = bi0;
++	  from += 1;
++	  to_next += 1;
++	  n_left_from -= 1;
++	  n_left_to_next -= 1;
++
++	  b0 = vlib_get_buffer (vm, bi0);
++
++	  ipfix0 = vlib_buffer_get_current (b0);
++      u16 total_len0 = (u16 ) (clib_net_to_host_u32 (ipfix0->version_length) & 0x0000FFFF);
++	  set0 = (ipfix_set_header_t *) (ipfix0 + 1);
++
++      if (total_len0 >= sizeof(ipfix_message_header_t)) {
++          total_len0 -= sizeof(ipfix_message_header_t);
++          while (total_len0 > 0) {
++	          set_id0  = (u16) (clib_net_to_host_u32 (set0->set_id_length) >> 16);
++              set_len0 = (u16) (clib_net_to_host_u32 (set0->set_id_length) & 0x0000FFFF);
++              total_len0 -= sizeof(ipfix_set_header_t);
++	      if (set_id0 == IPFIX_TEMPLATE_ID) {
++		      ++template_set;
++		      ++total_set;
++		      last_set = set_id0;
++		      break;
++              } else if (set_id0 == IPFIX_TCP_TEMPLATE_ID) {
++                  ++tcp_set;
++                  ++total_set;
++                  last_set = set_id0;
++                  ipfix_tcp_template_t *tcp = (ipfix_tcp_template_t *) (set0 + 1);
++                  sip = tcp->sip;
++                  dip = tcp->dip;
++                  total_len0 -= sizeof(ipfix_tcp_template_t);
++                  set0 = (ipfix_set_header_t *)(((u8 *)(set0)) + set_len0);
++              } else if (set_id0 == IPFIX_UDP_TEMPLATE_ID) {
++                  ++udp_set;
++                  ++total_set;
++                  last_set = set_id0;
++                  ipfix_udp_template_t *udp = (ipfix_udp_template_t *) (set0 + 1);
++                  sip = udp->sip;
++                  dip = udp->dip;
++                  total_len0 -= sizeof(ipfix_udp_template_t);
++		  set0 = (ipfix_set_header_t *)(((u8 *)(set0)) + set_len0);
++              } else if (set_id0 == IPFIX_ICMP_TEMPLATE_ID) {
++                  ++icmp_set;
++                  ++total_set;
++                  last_set = set_id0;
++                  ipfix_icmp_template_t *icmp = (ipfix_icmp_template_t *)(set0 + 1);
++                  sip = icmp->sip;
++                  dip = icmp->dip;
++                  total_len0 -= sizeof(ipfix_icmp_template_t);
++                  set0 = (ipfix_set_header_t *)(((u8 *)(set0)) + set_len0);
++              } else if (set_id0 == IPFIX_ICMP6_TEMPLATE_ID) {
++                  ++icmp6_set;
++                  ++total_set;
++		  last_set = set_id0;
++		  ipfix_icmpv6_template_t *icmp6 = (ipfix_icmpv6_template_t *)(set0 + 1);
++		  sip = icmp6->icmpv6_type;
++		  dip = icmp6->icmpv6_code;
++		  total_len0 -= sizeof(ipfix_icmpv6_template_t);
++		  set0 = (ipfix_set_header_t *)(((u8 *)(set0)) + set_len0);
++		  break;
++              } else {
++                  last_set = set_id0;
++                  ++invalid_set;
++                  ++total_set;
++                  break;
++             }
++          }
++
++      }
++	  next0 = IPFIX_NEXT_DROP;
++	  if (PREDICT_FALSE (b0->flags & VLIB_BUFFER_IS_TRACED))
++	    {
++	      ipfix_trace_t *tr = vlib_add_trace (vm, node,
++							    b0, sizeof (*tr));
++	  tr->last_set_id = last_set;
++          tr->num_of_tcp  = tcp_set;
++	  tr->num_of_udp = udp_set;
++          tr->num_of_icmp = icmp_set;
++          tr->num_of_sets = total_set;
++	  tr->num_of_template = template_set;
++	  tr->num_of_icmp6 = icmp6_set;
++          tr->sip = sip;
++          tr->dip = dip;
++        }
++
++	  vlib_validate_buffer_enqueue_x1 (vm, node, next_index,
++					   to_next, n_left_to_next,
++					   bi0, next0);
++	}
++
++      vlib_put_next_frame (vm, node, next_index, n_left_to_next);
++    }
++  vlib_error_count (vm, node->node_index,
++		    IPFIX_TCP_SET, tcp_set);
++  vlib_error_count (vm, node->node_index,
++		    IPFIX_UDP_SET, udp_set);
++  vlib_error_count (vm, node->node_index,
++		    IPFIX_ICMP_SET, icmp_set);
++  vlib_error_count (vm, node->node_index,
++		    IPFIX_TOTAL_SET, total_set);
++  vlib_error_count (vm, node->node_index,
++		    IPFIX_INVALID_SET, invalid_set);
++  return from_frame->n_vectors;
++}
++
++VLIB_REGISTER_NODE (ipfix_node) = {
++  .function = ipfix_node_fn,
++  .name = "ipfix",
++  .vector_size = sizeof (u32),
++  .format_trace = format_ipfix_trace,
++  .type = VLIB_NODE_TYPE_INTERNAL,
++
++  .n_errors = ARRAY_LEN(ipfix_error_strings),
++  .error_strings = ipfix_error_strings,
++
++  .n_next_nodes = IPFIX_N_NEXT,
++
++  /* edit / add dispositions here */
++  .next_nodes = {
++    [IPFIX_NEXT_DROP] = "error-drop",
++  },
++};
++
++
++static clib_error_t *
++ipfix_node_init (vlib_main_t * vm)
++{
++    udp_register_dst_port (vm, UDP_DST_PORT_ipfix,  ipfix_node.index, 1);
++    return 0;
++};
++
++VLIB_INIT_FUNCTION (ipfix_node_init) = {
++    .runs_after = VLIB_INITS("udp_local_init"),
++};
++/* *INDENT-ON* */
++
++/*
++ * fd.io coding-style-patch-verification: ON
++ *
++ * Local Variables:
++ * eval: (c-set-style "gnu")
++ * End:
++ */
+diff --git a/src/vnet/ipfix-export/ipfix_packet.h b/src/vnet/ipfix-export/ipfix_packet.h
+index 8b026e4db..875ed956c 100644
+--- a/src/vnet/ipfix-export/ipfix_packet.h
++++ b/src/vnet/ipfix-export/ipfix_packet.h
+@@ -17,6 +17,123 @@
+
+ #include <vnet/ipfix-export/ipfix_info_elements.h>
+
++// 150 bytes
++typedef struct {
++	uint16_t vpc_id;
++	uint16_t vnic_id;
++	uint32_t sip;
++        uint32_t dip;
++	uint8_t proto;
++	uint16_t pad1;
++	uint8_t icmp_type;
++	uint8_t icmp_code;
++	uint8_t flow_dir;
++	uint16_t vlan_id;
++	uint64_t pkt_count;
++	uint64_t byte_count;
++	uint64_t pkt_drop_count;
++	uint64_t byte_drop_count;
++	uint64_t pkt_delta_count;
++	uint64_t byte_delta_count;
++	uint64_t pkt_drop_delta_count;
++	uint64_t byte_drop_delta_count;
++	uint64_t FLOW_START_TIME_MSEC;
++	uint64_t FLOW_END_TIME_MSEC;
++	uint64_t FLOW_LAST_TIME_MSEC;
++	uint64_t FLOW_ID;
++	uint32_t EXPORTER_IPV4_ADDRESS;
++	uint8_t FLOW_END_REASON;
++	uint8_t pad2;
++	uint8_t pad3;
++} ipfix_icmp_template_t;
++
++//
++typedef struct {
++	uint16_t vpc_id;
++	uint16_t vnic_id;
++	uint8_t sip[16];
++        uint8_t dip[16];
++	uint8_t proto;
++	uint16_t pad1;
++	uint8_t icmpv6_type;
++	uint8_t icmpv6_code;
++	uint8_t flow_dir;
++	uint16_t vlan_id;
++	uint64_t pkt_count;
++	uint64_t byte_count;
++	uint64_t pkt_drop_count;
++	uint64_t byte_drop_count;
++	uint64_t pkt_delta_count;
++	uint64_t byte_delta_count;
++	uint64_t pkt_drop_delta_count;
++	uint64_t byte_drop_delta_count;
++	uint64_t FLOW_START_TIME_MSEC;
++	uint64_t FLOW_END_TIME_MSEC;
++	uint64_t FLOW_LAST_TIME_MSEC;
++	uint64_t FLOW_ID;
++	uint32_t EXPORTER_IPV4_ADDRESS;
++	uint8_t FLOW_END_REASON;
++	uint8_t pad2;
++	uint8_t pad3;
++} ipfix_icmpv6_template_t;
++
++// 172 bytes
++typedef struct {
++    uint16_t vpc_id;
++    uint16_t vnic_id;
++    uint32_t sip;
++    uint32_t dip;
++    uint8_t  protocol;
++    uint16_t sport;
++    uint16_t dport;
++    uint32_t seq_num;
++    uint32_t ack_num;
++    uint8_t  direction;
++    uint16_t vlan_id;
++    uint64_t pkt_count;
++    uint64_t byte_count;
++    uint64_t pkt_drop_count;
++    uint64_t byte_drop_count;
++    uint64_t pkt_delta_count;
++    uint64_t byte_delta_count;
++    uint64_t pkt_drop_delta_count;
++    uint64_t byte_drop_delta_count;
++    uint64_t flow_start_time;
++    uint64_t flow_end_time;
++    uint64_t flow_last_time;
++    uint64_t flow_id;
++    uint32_t exporter_ip;
++    uint8_t flow_end_reason;
++    uint8_t pad;
++} ipfix_tcp_template_t;
++
++typedef struct {
++    uint16_t vpc_id;
++    uint16_t vnic_id;
++    uint32_t sip;
++    uint32_t dip;
++    uint8_t  protocol;
++    uint16_t sport;
++    uint16_t dport;
++    uint8_t  direction;
++    uint16_t vlan_id;
++    uint64_t pkt_count;
++    uint64_t byte_count;
++    uint64_t pkt_drop_count;
++    uint64_t byte_drop_count;
++    uint64_t pkt_delta_count;
++    uint64_t byte_delta_count;
++    uint64_t pkt_drop_delta_count;
++    uint64_t byte_drop_delta_count;
++    uint64_t flow_start_time;
++    uint64_t flow_end_time;
++    uint64_t flow_last_time;
++    uint64_t flow_id;
++    uint32_t exporter_ip;
++    uint8_t flow_end_reason;
++    uint8_t pad[3];
++} ipfix_udp_template_t;
++
+ /* From RFC-7011:
+  * https://tools.ietf.org/html/rfc7011
+  */
+-bash-4.2$
