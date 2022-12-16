@@ -1,0 +1,34 @@
+{
+	"namespace": "snaplog.avro",
+	"type": "record",
+	"name": "snaplog",
+	"fields": [
+		{"name": "vpcid", "type": "int"},
+		{"name": "vnicid", "type": "int"},
+		{"name": "sip", "type": "int"},
+		{"name": "dip",  "type": "int"},
+		{"name": "protocol", "type": "int"},
+		{"name": "padding", "type": "int"},
+		{"name": "icmp_type", "type": "int"},
+		{"name": "icmp_code", "type": "int"},
+		{"name": "flow_direction",  "type": "int"},
+		{"name": "vlan_id", "type": "int"},
+		{"name": "pkt_count", "type": "long"},
+		{"name": "bytes_count", "type": "long"},
+		{"name": "pkt_drop_count",  "type": "long"},
+		{"name": "byte_drop_count", "type": "long"},
+		{"name": "pkt_delta_count", "type": "long"},
+		{"name": "byte_delta_count",  "type": "long"},
+		{"name": "pkt_drop_delta_count", "type": "long"},
+		{"name": "byte_drop_delta_count", "type": "long"},
+		{"name": "flow_start_time",  "type": "long"},
+		{"name": "flow_end_time", "type": "long"},
+		{"name": "flow_last_time", "type": "long"},
+		{"name": "flow_id",  "type": "long"},
+		{"name": "exporter_ip", "type": "int"},
+		{"name": "flow_end_reason", "type": "int"},
+		{"name": "pad2", "type": "int"},
+		{"name": "pad3", "type": "int"}
+
+	]
+}
