@@ -1,0 +1,7 @@
+/usr/bin/vpp -c /home/vpp-inst/startup1.conf
+vppctl -s /run/vpp/cli-vpp1.sock
+
+create host-interface name enp35s0_6
+set int ip address host-enp35s0_6 10.5.0.2/16
+set int state host-enp35s0_6 up
+set interface mac address host-enp35s0_6 00:ae:cd:09:82:68
